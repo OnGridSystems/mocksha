@@ -13,48 +13,30 @@ def get_last_file(files):
 
     for file in files:
         number = re.match(r"\d+", file)
-        if number.group(0) and int(number.group(0)) > last_file["number"]:
+        if number and int(number.group(0)) > last_file["number"]:
             last_file["number"] = int(number.group(0))
             last_file["file_name"] = file
 
     return last_file
 
 
-def gen_log_file(type_file):
+def gen_log_file():
     log_files = (file for file in os.listdir(YAML_files_store)
-                 if os.path.isfile(os.path.join(YAML_files_store, file)) and type_file in file)
+                 if os.path.isfile(os.path.join(YAML_files_store, file)))
 
 
     log_file = get_last_file(log_files)
-    next_file = "0001_{}.yml".format(type_file) if not log_file["file_name"] \
-                            else "{:04d}_{}.yml".format(log_file["number"] + 1, type_file)
+    next_file = "0001.yml" if not log_file["file_name"] else "{:04d}.yml".format(log_file["number"] + 1)
 
     return next_file
 
 
-def logger_request(request):
+def logger(data):
 
-    log_file = gen_log_file("req")
-
-    with open(os.path.join(YAML_files_store, log_file), "w") as f:
-        data = {
-            "time": datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y"),
-            "URI": str(request.url),
-            "method": request.method,
-        }
-        yaml.dump(data, f, default_flow_style=False)
-
-
-def logger_response(response, text):
-
-    log_file = gen_log_file("resp")
+    log_file = gen_log_file()
 
     with open(os.path.join(YAML_files_store, log_file), "w") as f:
-        data = {
-            "time": datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y"),
-            "URI": str(response.url),
-            "status": response.status,
-            "method": response.method,
-            "text": text,
-        }
         yaml.dump(data, f, default_flow_style=False)
+
+    return True
+
