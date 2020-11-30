@@ -1,0 +1,60 @@
+import os, re, yaml, datetime
+
+
+mocksha_app_dir = os.path.abspath(os.path.dirname(__file__))
+YAML_files_store = os.path.join(mocksha_app_dir, "YAML_files_store")
+
+
+def get_last_file(files):
+
+    last_file = {"number":0,
+                 "file_name": None,
+                 }
+
+    for file in files:
+        number = re.match(r"\d+", file)
+        if number.group(0) and int(number.group(0)) > last_file["number"]:
+            last_file["number"] = int(number.group(0))
+            last_file["file_name"] = file
+
+    return last_file
+
+
+def gen_log_file(type_file):
+    log_files = (file for file in os.listdir(YAML_files_store)
+                 if os.path.isfile(os.path.join(YAML_files_store, file)) and type_file in file)
+
+
+    log_file = get_last_file(log_files)
+    next_file = "0001_{}.yml".format(type_file) if not log_file["file_name"] \
+                            else "{:04d}_{}.yml".format(log_file["number"] + 1, type_file)
+
+    return next_file
+
+
+def logger_request(request):
+
+    log_file = gen_log_file("req")
+
+    with open(os.path.join(YAML_files_store, log_file), "w") as f:
+        data = {
+            "time": datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y"),
+            "URI": str(request.url),
+            "method": request.method,
+        }
+        yaml.dump(data, f, default_flow_style=False)
+
+
+def logger_response(response, text):
+
+    log_file = gen_log_file("resp")
+
+    with open(os.path.join(YAML_files_store, log_file), "w") as f:
+        data = {
+            "time": datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y"),
+            "URI": str(response.url),
+            "status": response.status,
+            "method": response.method,
+            "text": text,
+        }
+        yaml.dump(data, f, default_flow_style=False)
