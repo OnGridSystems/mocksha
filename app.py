@@ -1,14 +1,12 @@
 import os
 from aiohttp import web, ClientSession
 
-from utils import logger, multidict_to_dict
+from utils import logger, multidict_to_dict, get_response
 
 
 routes = web.RouteTableDef()
 
-# UPSTREAM = os.environ.get("UPSTREAM", "http://localhost:5000/api")
 UPSTREAM = os.environ.get("UPSTREAM")
-
 
 @routes.view(r"/{URN:.*}")
 class MyView(web.View):
@@ -29,25 +27,43 @@ class MyView(web.View):
             # re-request
             async with ClientSession() as session:
                 async with session.get(UPSTREAM+self.request.path_qs) as response:
+                    res = response
+                    raw = await res.read()
 
-                    text = await response.text()
-                    data.update({
-                        "response": {
-                            "status": response.status,
-                            "headers": multidict_to_dict(response.headers),
-                            "content": {
-                                "text": text,
-                            },
-                        }
-                    })
+            headers = dict(res.headers)
+            if "Transfer-Encoding" in headers:
+                del headers["Transfer-Encoding"]
+                headers["Content-Length"] = str(len(raw))
+
+            data.update({
+                "response": {
+                    "status": res.status,
+                    #TODO
+                    "headers": multidict_to_dict(response.headers),
+                    "content": {
+                        "body": raw,
+                    },
+                }
+            })
 
             logger(data)
 
-            return web.Response(text=text, headers=response.headers, status=response.status)
+            return web.Response(body=raw, status=res.status, headers=headers)
 
         else:
-            print(self.request.url)
-            print(self.request.path_qs)
+            response = get_response(str(self.request.url))
+
+            if not response:
+                body = "Text Not Found"
+                status = 404
+                headers = {"Content-Type": "text/html"}
+            else:
+                body = response["response"]["content"]["body"]
+                status = response["response"]["status"]
+                headers = response["response"]["headers"]
+
+            return web.Response(body=body, headers=headers, status=status)
+
 
     async def post(self):
         pass
@@ -62,5 +78,5 @@ def init_func(argv):
     return app
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     web.run_app(app)

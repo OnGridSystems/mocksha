@@ -48,12 +48,19 @@ def multidict_to_dict(multidict):
         if not d.get(key_):
             d.update({key_: value})
         else:
-            if type(d[key_]) == str:
-                new_value = list()
-                new_value.append(d[key_])
-                new_value.append(value)
-                d.update({key_: new_value})
-            else:
-                d[key_].append(value)
+            d.update({key_: d[key_]+"; {}".format(value)})
 
     return d
+
+
+def get_response(url):
+
+    log_files = (file for file in os.listdir(YAML_files_store) if os.path.isfile(os.path.join(YAML_files_store, file)))
+
+    for file in log_files:
+        with open(os.path.join(YAML_files_store, file), "r") as f:
+            data = yaml.safe_load(f)
+
+            if data["request"]["url"] == url:
+                print(data)
+                return data
