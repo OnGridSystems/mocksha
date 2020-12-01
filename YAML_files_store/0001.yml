@@ -1,0 +1,22 @@
+request:
+  headers:
+    Accept: '*/*'
+    Host: localhost:8080
+    User-Agent: curl/7.65.1
+  method: GET
+  queryString: []
+  url: http://localhost:8080/test
+response:
+  content:
+    text: Hello World!
+  headers:
+    Access-Control-Allow-Origin: '*'
+    Cache-Control: no-store
+    Content-Length: '12'
+    Content-Type: text/html; charset=utf-8
+    Date: Tue, 01 Dec 2020 08:41:14 GMT
+    Server: Werkzeug/1.0.1 Python/2.7.12
+    Set-Cookie:
+    - yummy_cooki=choco; Path=/
+    - tasty_cookie=strawberry; Path=/
+  status: 200
