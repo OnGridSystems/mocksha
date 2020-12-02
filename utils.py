@@ -1,8 +1,5 @@
 import os, re, yaml
-
-
-mocksha_app_dir = os.path.abspath(os.path.dirname(__file__))
-YAML_files_store = os.path.join(mocksha_app_dir, "YAML_files_store")
+from settings import CONFIG_DIR
 
 
 def get_last_file(files):
@@ -22,8 +19,8 @@ def get_last_file(files):
 
 def gen_log_file():
 
-    log_files = (file for file in os.listdir(YAML_files_store)
-                 if os.path.isfile(os.path.join(YAML_files_store, file)))
+    log_files = (file for file in os.listdir(CONFIG_DIR)
+                 if os.path.isfile(os.path.join(CONFIG_DIR, file)))
 
     log_file = get_last_file(log_files)
     next_file = "0001.yml" if not log_file["file_name"] else "{:04d}.yml".format(log_file["number"] + 1)
@@ -35,16 +32,17 @@ def logger(data):
 
     log_file = gen_log_file()
 
-    with open(os.path.join(YAML_files_store, log_file), "w") as f:
+    with open(os.path.join(CONFIG_DIR, log_file), "w") as f:
         yaml.dump(data, f, default_flow_style=False)
-        return True
+        return log_file
 
 
-def multidict_to_dict(multidict):
+def multidict_to_dict(multidict, clean=None):
 
     d = {}
     for key, value in multidict.items():
         key_ = str(key)
+
         if not d.get(key_):
             d.update({key_: value})
         else:
@@ -55,12 +53,26 @@ def multidict_to_dict(multidict):
 
 def get_response(url):
 
-    log_files = (file for file in os.listdir(YAML_files_store) if os.path.isfile(os.path.join(YAML_files_store, file)))
+    log_files = (file for file in os.listdir(CONFIG_DIR) if os.path.isfile(os.path.join(CONFIG_DIR, file)))
 
     for file in log_files:
-        with open(os.path.join(YAML_files_store, file), "r") as f:
+        with open(os.path.join(CONFIG_DIR, file), "r") as f:
             data = yaml.safe_load(f)
+            try:
+                if data["request"]["url"] == url:
+                    data.update({"file_name": file})
+                    return data
+            except KeyError:
+                raise Exception("Not valid yaml file")
 
-            if data["request"]["url"] == url:
-                print(data)
-                return data
+def directory_is_not_empty():
+    if not os.listdir(CONFIG_DIR):
+        return True
+
+
+def clean_headers(headers):
+    if "Transfer-Encoding" in headers:
+        del headers["Transfer-Encoding"]
+
+    if "Content-Encoding" in headers:
+        del headers["Content-Encoding"]

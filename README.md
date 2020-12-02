@@ -18,7 +18,7 @@ Provide the external server URI via env
 
 Start the server on the given port 
 
-`python -m aiohttp.web -H localhost -P 8080 mocksha`
+`python -m aiohttp.web -H localhost -P 8080 app:init_func`
 
 Interact with it
 
