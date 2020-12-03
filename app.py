@@ -3,7 +3,7 @@ from urllib.parse import urljoin
 
 from aiohttp import web, ClientSession
 
-from utils import logger, multidict_to_dict, get_response, directory_is_not_empty, clean_headers
+from utils import logger, multidict_to_dict, get_response, directory_is_not_empty, reset_some_response_headers
 from settings import UPSTREAM
 
 
@@ -21,31 +21,47 @@ class MyView(web.View):
         if UPSTREAM:
             log.info("\nRecord mode. UPSTREAM={}".format(UPSTREAM))
             log.info("{:*^40}\n".format("START"))
-            log.info("REQUEST {method} {url}".format(method=self.request.method, url=self.request.url))
+
+            text = await self.request.text()
+
+            log.info("REQUEST {method} {url} {body}".format(method=self.request.method, url=self.request.url,
+                                                            body=text))
+
+            headers = multidict_to_dict(self.request.headers)
+            if "Host" in headers:
+                del headers["Host"]
 
             data = {
                 "request": {
                     "method": self.request.method,
                     "url": str(self.request.url),
                     "headers": multidict_to_dict(self.request.headers),
-                    "queryString" : [{"name": key, "value": value} for key, value in self.request.query.items()],
+                    "content": {
+                        "body": text,
+                    }
                 },
             }
 
             target_url = urljoin(UPSTREAM, self.request.path_qs.lstrip("/"))
 
-            log.info("RE-REQUEST {method} {url}".format(method=self.request.method, url=target_url))
+            log.info("RE-REQUEST {method} {url} {body}".format(method=self.request.method, url=target_url,
+                                                                 body=text))
 
             async with ClientSession() as session:
-                async with session.get(target_url) as response:
+                async with session.get(target_url, data=text, headers=headers) as response:
+
                     text = await response.text()
 
             log.info("RESPONSE {url} STATUS {status}".format(url=target_url, status=response.status))
 
             headers = multidict_to_dict(response.headers)
+            reset_some_response_headers(headers)
+
             data.update({
                 "response": {
+                    "url": str(response.url),
                     "status": response.status,
+                    "method": response.method,
                     "headers": headers,
                     "content": {
                         "body": text,
@@ -54,15 +70,11 @@ class MyView(web.View):
             })
 
             file_name = logger(data)
-
-            clean_headers(headers)
-
             if file_name:
                 log.info("SAVED RESPONSE (status, headers, content) to {file_name}".format(file_name=file_name))
 
             log.info("\n{:*^40}\n".format("END"))
-
-            return web.Response(body=text, status=response.status, headers=headers)
+            return web.Response(text=text, status=response.status, headers=headers)
 
         else:
             log.info("\nReplay mode. UPSTREAM={}".format(UPSTREAM))
@@ -84,16 +96,97 @@ class MyView(web.View):
                 status = response["response"]["status"]
                 headers = response["response"]["headers"]
 
-                clean_headers(headers)
+                log.info("CACHE available in file (first found) {file_name}".format(file_name=response["file_name"]))
+                log.info("RESPONSE {url} STATUS {status}".format(url=self.request.url, status=status))
+
+            log.info("\n{:*^40}\n".format("END"))
+            return web.Response(text=text, headers=headers, status=status)
+
+    async def post(self):
+
+        if UPSTREAM:
+            log.info("\nRecord mode. UPSTREAM={}".format(UPSTREAM))
+            log.info("{:*^40}\n".format("START"))
+
+            text = await self.request.text()
+
+            log.info("REQUEST {method} {url} {body}".format(method=self.request.method, url=self.request.url,
+                                                            body=text))
+
+            headers = multidict_to_dict(self.request.headers)
+            if "Host" in headers:
+                del headers["Host"]
+
+            data = {
+                "request": {
+                    "method": self.request.method,
+                    "url": str(self.request.url),
+                    "headers": multidict_to_dict(self.request.headers),
+                    "content": {
+                        "body": text,
+                    }
+                },
+            }
+
+            target_url = urljoin(UPSTREAM, self.request.path_qs.lstrip("/"))
+
+            log.info("RE-REQUEST {method} {url} {body}".format(method=self.request.method, url=target_url,
+                                                                 body=text))
+
+            async with ClientSession() as session:
+                async with session.post(target_url, data=text, headers=headers) as response:
+
+                    text = await response.text()
+
+            log.info("RESPONSE {url} STATUS {status}".format(url=target_url, status=response.status))
+
+            headers = multidict_to_dict(response.headers)
+            reset_some_response_headers(headers)
+
+            data.update({
+                "response": {
+                    "url": str(response.url),
+                    "status": response.status,
+                    "method": response.method,
+                    "headers": headers,
+                    "content": {
+                        "body": text,
+                    },
+                }
+            })
+
+            file_name = logger(data)
+            if file_name:
+                log.info("SAVED RESPONSE (status, headers, content) to {file_name}".format(file_name=file_name))
+
+            log.info("\n{:*^40}\n".format("END"))
+            return web.Response(text=text, status=response.status, headers=headers)
+
+        else:
+            log.info("\nReplay mode. UPSTREAM={}".format(UPSTREAM))
+            log.info("{:*^40}\n".format("START"))
+            log.info("REQUEST {method} {url}".format(method=self.request.method, url=self.request.url))
+            log.info("RE-REQUEST TO FILE {method} {url}".format(method=self.request.method, url=self.request.url))
+
+            response = get_response(str(self.request.url))
+
+            if not response:
+                text = "Text Not Found"
+                status = 404
+                headers = {"Content-Type": "text/html"}
+
+                log.info("CACHE NOT available (file not found)")
+                log.info("RESPONSE {url} STATUS {status}".format(url=self.request.url, status=status))
+            else:
+                text = response["response"]["content"]["body"]
+                status = response["response"]["status"]
+                headers = response["response"]["headers"]
 
                 log.info("CACHE available in file (first found) {file_name}".format(file_name=response["file_name"]))
                 log.info("RESPONSE {url} STATUS {status}".format(url=self.request.url, status=status))
 
             log.info("\n{:*^40}\n".format("END"))
-            return web.Response(body=text, headers=headers, status=status)
-
-    async def post(self):
-        pass
+            return web.Response(text=text, headers=headers, status=status)
 
 
 async def init_msg(app):
@@ -103,10 +196,10 @@ async def init_msg(app):
 
     if UPSTREAM:
         log.info("\n")
-        log.info("Record mode - intercepts ans saves HTTP requests to YAML files\n")
+        log.info("Record mode - intercepts ans saves HTTP requests to YAML files\nUPSTREAM={}\n".format(UPSTREAM))
     else:
         log.info("\n")
-        log.info("Replay mode - serves requests locally from the YAML files\n")
+        log.info("Replay mode - serves requests locally from the YAML files\nUPSTREAM={}\n".format(UPSTREAM))
 
 
 app = web.Application()

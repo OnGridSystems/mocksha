@@ -37,18 +37,9 @@ def logger(data):
         return log_file
 
 
-def multidict_to_dict(multidict, clean=None):
+def multidict_to_dict(multidict):
 
-    d = {}
-    for key, value in multidict.items():
-        key_ = str(key)
-
-        if not d.get(key_):
-            d.update({key_: value})
-        else:
-            d.update({key_: d[key_]+"; {}".format(value)})
-
-    return d
+    return {str(key): value for key, value in multidict.items()}
 
 
 def get_response(url):
@@ -65,12 +56,17 @@ def get_response(url):
             except KeyError:
                 raise Exception("Not valid yaml file")
 
+
 def directory_is_not_empty():
     if not os.listdir(CONFIG_DIR):
         return True
 
 
-def clean_headers(headers):
+def reset_some_response_headers(headers):
+
+    if "Content-Length" in headers:
+        del headers["Content-Length"]
+
     if "Transfer-Encoding" in headers:
         del headers["Transfer-Encoding"]
 
