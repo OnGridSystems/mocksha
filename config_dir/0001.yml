@@ -1,0 +1,27 @@
+request:
+  content:
+    body: '{"jsonrpc": "2.0", "method": "eth_chainId", "params": [], "id": 0}'
+  headers:
+    Accept: '*/*'
+    Accept-Encoding: gzip, deflate
+    Connection: keep-alive
+    Content-Length: '66'
+    Content-Type: application/json
+    Host: 172.17.0.1:8080
+    User-Agent: Web3.py/5.13.0/<class 'web3.providers.rpc.HTTPProvider'>
+  method: POST
+  url: http://172.17.0.1:8080/rpc
+response:
+  content:
+    body: '{"jsonrpc":"2.0","id":0,"result":"0x5"}
+
+      '
+  headers:
+    Connection: keep-alive
+    Content-Type: application/json
+    Date: Mon, 07 Dec 2020 07:31:26 GMT
+    Server: nginx/1.19.4
+    Vary: Origin
+  method: POST
+  status: 200
+  url: http://206.81.31.11/rpc

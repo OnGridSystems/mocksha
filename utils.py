@@ -1,5 +1,6 @@
 import os, re, yaml
-from settings import CONFIG_DIR
+
+from settings import CONFIG_DIR, log
 
 
 def get_last_file(files):
@@ -42,15 +43,16 @@ def multidict_to_dict(multidict):
     return {str(key): value for key, value in multidict.items()}
 
 
-def get_response(url):
+def get_response(url, text):
 
     log_files = (file for file in os.listdir(CONFIG_DIR) if os.path.isfile(os.path.join(CONFIG_DIR, file)))
 
     for file in log_files:
+        log.info("Reading {}".format(file))
         with open(os.path.join(CONFIG_DIR, file), "r") as f:
             data = yaml.safe_load(f)
             try:
-                if data["request"]["url"] == url:
+                if data["request"]["url"] == url and data["request"]["content"]["body"] == text:
                     data.update({"file_name": file})
                     return data
             except KeyError:
@@ -58,7 +60,8 @@ def get_response(url):
 
 
 def directory_is_not_empty():
-    if not os.listdir(CONFIG_DIR):
+
+    if os.listdir(CONFIG_DIR):
         return True
 
 
@@ -72,3 +75,12 @@ def reset_some_response_headers(headers):
 
     if "Content-Encoding" in headers:
         del headers["Content-Encoding"]
+
+
+def clean_directory():
+    import shutil
+
+    shutil.rmtree(CONFIG_DIR, ignore_errors=True)
+
+    log.info("Directory cleared")
+
