@@ -219,6 +219,7 @@ app.on_startup.append(init_msg)
 def init_func(argv):
     app = web.Application()
     app.add_routes(routes)
+    app.on_startup.append(init_msg)
 
     return app
 

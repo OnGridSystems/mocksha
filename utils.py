@@ -18,7 +18,7 @@ def get_last_file(files):
     return last_file
 
 
-def gen_log_file():
+def gen_log_file_name():
 
     log_files = (file for file in os.listdir(CONFIG_DIR)
                  if os.path.isfile(os.path.join(CONFIG_DIR, file)))
@@ -31,7 +31,7 @@ def gen_log_file():
 
 def logger(data):
 
-    log_file = gen_log_file()
+    log_file = gen_log_file_name()
 
     with open(os.path.join(CONFIG_DIR, log_file), "w") as f:
         yaml.dump(data, f, default_flow_style=False)
@@ -82,5 +82,4 @@ def clean_directory():
 
     shutil.rmtree(CONFIG_DIR, ignore_errors=True)
 
-    log.info("Directory cleared")
-
+    log.info("\nDirectory cleared")
