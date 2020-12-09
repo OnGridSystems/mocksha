@@ -56,7 +56,7 @@ def get_response(url, text):
                     data.update({"file_name": file})
                     return data
             except KeyError:
-                raise Exception("Not valid yaml file")
+                raise KeyError("Not valid yaml file")
 
 
 def directory_is_not_empty():
@@ -77,7 +77,7 @@ def reset_some_response_headers(headers):
         del headers["Content-Encoding"]
 
 
-def clean_directory():
+def clean_config_directory():
     import shutil
 
     shutil.rmtree(CONFIG_DIR, ignore_errors=True)

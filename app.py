@@ -3,7 +3,7 @@ from urllib.parse import urljoin
 from aiohttp import web, ClientSession
 
 from utils import logger, multidict_to_dict, get_response, directory_is_not_empty, reset_some_response_headers, \
-    clean_directory
+    clean_config_directory
 from settings import UPSTREAM, log
 
 
@@ -195,11 +195,11 @@ class MyView(web.View):
             return web.Response(text=text, headers=headers, status=status)
 
 
-async def init_msg(app):
+async def init_app():
 
     if UPSTREAM:
         if directory_is_not_empty():
-            clean_directory()
+            clean_config_directory()
 
         log.info("\n")
         log.info("Record mode - intercepts ans saves HTTP requests to YAML files\nUPSTREAM={}\n".format(UPSTREAM))
@@ -213,13 +213,14 @@ async def init_msg(app):
 
 app = web.Application()
 app.add_routes(routes)
-app.on_startup.append(init_msg)
+app.on_startup.append(init_app)
 
 
-def init_func(argv):
+def init_func(test=None):
     app = web.Application()
     app.add_routes(routes)
-    app.on_startup.append(init_msg)
+    if not test:
+        app.on_startup.append(init_app)
 
     return app
 

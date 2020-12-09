@@ -57,3 +57,11 @@ Since it’s intended to emulate external resource in CI auto-tests, we made its
 * Supports only HTTP
 * Tested only on plaintext data
 
+## Test
+To run tests you need all test dependencies installed
+
+`pip install -U -r requirements-test.txt`
+
+To run tests
+
+`./run_tests.sh`

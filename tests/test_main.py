@@ -1,22 +1,25 @@
 import os
 
-from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
+from aiohttp.test_utils import AioHTTPTestCase
 from aiohttp import web
 
 from app import init_func
 from utils import get_last_file, gen_log_file_name, logger, multidict_to_dict, get_response, directory_is_not_empty, \
-    reset_some_response_headers, clean_directory
+    reset_some_response_headers, clean_config_directory
 from settings import CONFIG_DIR
 
 
-class AppTestCase(AioHTTPTestCase):
+class UnitTestCase(AioHTTPTestCase):
+
+    async def tearDownAsync(self) -> None:
+        clean_config_directory()
 
     async def get_application(self):
         """
         Override the get_app method to return your application.
         """
 
-        return init_func("app")
+        return init_func(test=True)
 
     def test_app(self):
 
@@ -24,15 +27,23 @@ class AppTestCase(AioHTTPTestCase):
 
 
     def test_get_last_file(self):
-        with open(os.path.join(CONFIG_DIR, "0001.yml"), "w") as f:
-            pass
 
-        with open(os.path.join(CONFIG_DIR, "0002.yml"), "w") as f:
-            pass
+        import tempfile
 
-        log_files = (file for file in os.listdir(CONFIG_DIR) if os.path.isfile(os.path.join(CONFIG_DIR, file)))
-        last_file = get_last_file(log_files)["file_name"]
-        assert f.name == os.path.join(CONFIG_DIR, last_file)
+        with tempfile.TemporaryDirectory() as tmp_dir:
+
+            file_1 = os.path.join(tmp_dir, "0001.yml")
+            file_2 = os.path.join(tmp_dir, "0002.yml")
+
+            with open(file_1, "w") as f:
+                pass
+            with open(file_2, "w") as f:
+                pass
+
+            log_files = (file for file in os.listdir(tmp_dir) if os.path.isfile(os.path.join(tmp_dir, file)))
+            last_file = get_last_file(log_files)["file_name"]
+
+            assert f.name == os.path.join(tmp_dir, last_file)
 
 
     def test_gen_log_file_name(self):
@@ -79,10 +90,9 @@ class AppTestCase(AioHTTPTestCase):
 
         log_file = logger(data)
 
-        with self.assertRaises(Exception) as context:
+        with self.assertRaises(KeyError):
             get_response("URL", "text")
 
-        assert str(context.exception) == "Not valid yaml file"
 
 
     def test_get_response(self):
@@ -118,11 +128,15 @@ class AppTestCase(AioHTTPTestCase):
 
         d ={
             "key1": "value1",
-            "Content-Length": "value2",
+            "Content-Length": "value",
+            "Transfer-Encoding": "value",
+            "Content-Encoding": "value",
         }
         reset_some_response_headers(d)
 
         self.assertTrue("Content-Length" not in d, "key1" in d)
+        self.assertFalse("Transfer-Encoding" in d)
+        self.assertFalse("Content-Encoding" in d)
 
 
     def test_clean_directory(self):
@@ -132,6 +146,6 @@ class AppTestCase(AioHTTPTestCase):
         with open(file, "w") as f:
             pass
 
-        clean_directory()
+        clean_config_directory()
 
         self.assertFalse(os.listdir(CONFIG_DIR))
