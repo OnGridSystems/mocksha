@@ -57,3 +57,6 @@ Since it’s intended to emulate external resource in CI auto-tests, we made its
 * Supports only HTTP
 * Tested only on plaintext data
 
+# Tests
+
+
