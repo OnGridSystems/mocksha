@@ -6,10 +6,10 @@ Mocksha has two modes of oparation: record and replay.
 
 ## Record mode - intercepts ans saves HTTP requests to YAML files
 
-install aiohttp
+install required packages
 
 ```
-pip install aiohttp
+pip install -r requirements.txt
 ```
 
 Provide the external server URI via env 
@@ -58,9 +58,6 @@ Since it’s intended to emulate external resource in CI auto-tests, we made its
 * Tested only on plaintext data
 
 ## Test
-To run tests you need all test dependencies installed
-
-`pip install -U -r requirements-test.txt`
 
 To run tests
 

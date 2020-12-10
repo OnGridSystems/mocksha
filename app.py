@@ -195,7 +195,7 @@ class MyView(web.View):
             return web.Response(text=text, headers=headers, status=status)
 
 
-async def init_app():
+async def startup(app):
 
     if UPSTREAM:
         if directory_is_not_empty():
@@ -211,19 +211,10 @@ async def init_app():
         log.info("Replay mode - serves requests locally from the YAML files\nUPSTREAM={}\n".format(UPSTREAM))
 
 
-app = web.Application()
-app.add_routes(routes)
-app.on_startup.append(init_app)
-
-
 def init_func(test=None):
     app = web.Application()
     app.add_routes(routes)
     if not test:
-        app.on_startup.append(init_app)
+        app.on_startup.append(startup)
 
     return app
-
-
-if __name__ == "__main__":
-    web.run_app(app)
