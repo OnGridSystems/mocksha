@@ -1,6 +1,6 @@
 import os
 
-from aiohttp.test_utils import AioHTTPTestCase
+from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 from aiohttp import web
 
 from app import init_func
@@ -21,12 +21,13 @@ class UnitTestCase(AioHTTPTestCase):
 
         return init_func(test=True)
 
-    def test_app(self):
+    @unittest_run_loop
+    async def test_app(self):
 
         assert type(self.app) == web.Application
 
-
-    def test_get_last_file(self):
+    @unittest_run_loop
+    async def test_get_last_file(self):
 
         import tempfile
 
@@ -45,8 +46,8 @@ class UnitTestCase(AioHTTPTestCase):
 
             assert f.name == os.path.join(tmp_dir, last_file)
 
-
-    def test_gen_log_file_name(self):
+    @unittest_run_loop
+    async def test_gen_log_file_name(self):
 
         log_file_name = gen_log_file_name()
 
@@ -54,8 +55,8 @@ class UnitTestCase(AioHTTPTestCase):
 
         assert int(log_file_name[0]) and log_file_name[1] =="yml"
 
-
-    def test_logger(self):
+    @unittest_run_loop
+    async def test_logger(self):
 
         data = {
             "test_key1": "test_value1",
@@ -72,16 +73,16 @@ class UnitTestCase(AioHTTPTestCase):
         assert "test_value1" in result
         assert "test_value1" in result
 
-
-    def test_multidict_to_dict(self):
+    @unittest_run_loop
+    async def test_multidict_to_dict(self):
 
         from multidict import MultiDict
 
         d = multidict_to_dict(MultiDict([('a', 1), ('b', 2), ('a', 3)]))
         assert isinstance(d, dict)
 
-
-    def test_get_response_valid_yaml_file(self):
+    @unittest_run_loop
+    async def test_get_response_valid_yaml_file(self):
 
         data = {
             "test_key1": "test_value1",
@@ -93,9 +94,8 @@ class UnitTestCase(AioHTTPTestCase):
         with self.assertRaises(KeyError):
             get_response("URL", "text")
 
-
-
-    def test_get_response(self):
+    @unittest_run_loop
+    async def test_get_response(self):
 
         data = {
             "request": {
@@ -113,8 +113,8 @@ class UnitTestCase(AioHTTPTestCase):
         assert data["request"]["url"] == response["request"]["url"] \
                and data["request"]["content"]["body"] == response["request"]["content"]["body"]
 
-
-    def test_directory_is_not_empty(self):
+    @unittest_run_loop
+    async def test_directory_is_not_empty(self):
 
         file = os.path.join(CONFIG_DIR, "0001test.yml")
 
@@ -123,8 +123,8 @@ class UnitTestCase(AioHTTPTestCase):
 
         self.assertTrue(os.path.isfile(os.path.join(CONFIG_DIR, file)), directory_is_not_empty())
 
-
-    def test_reset_some_response_headers(self):
+    @unittest_run_loop
+    async def test_reset_some_response_headers(self):
 
         d ={
             "key1": "value1",
@@ -138,8 +138,8 @@ class UnitTestCase(AioHTTPTestCase):
         self.assertFalse("Transfer-Encoding" in d)
         self.assertFalse("Content-Encoding" in d)
 
-
-    def test_clean_directory(self):
+    @unittest_run_loop
+    async def test_clean_directory(self):
 
         file = os.path.join(CONFIG_DIR, "0001test.yml")
 

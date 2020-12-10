@@ -1,4 +1,4 @@
-import os, re, yaml
+import os, re, yaml, shutil, pathlib
 
 from settings import CONFIG_DIR, log
 
@@ -78,8 +78,8 @@ def reset_some_response_headers(headers):
 
 
 def clean_config_directory():
-    import shutil
 
     shutil.rmtree(CONFIG_DIR, ignore_errors=True)
+    pathlib.Path(CONFIG_DIR).mkdir(parents=True, exist_ok=True)
 
     log.info("\nDirectory cleared")
