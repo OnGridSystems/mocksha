@@ -1,6 +1,6 @@
 import os, re, yaml, shutil, pathlib
 
-from settings import CONFIG_DIR, log
+from .settings import CONFIG_DIR, log
 
 
 def get_last_file(files):
@@ -29,13 +29,13 @@ def gen_log_file_name():
     return next_file
 
 
-def logger(data):
-
-    log_file = gen_log_file_name()
-
-    with open(os.path.join(CONFIG_DIR, log_file), "w") as f:
-        yaml.dump(data, f, default_flow_style=False)
-        return log_file
+# def logger(data):
+#
+#     log_file = gen_log_file_name()
+#
+#     with open(os.path.join(CONFIG_DIR, log_file), "w") as f:
+#         yaml.dump(data, f, default_flow_style=False)
+#         return log_file
 
 
 def multidict_to_dict(multidict):
@@ -43,20 +43,20 @@ def multidict_to_dict(multidict):
     return {str(key): value for key, value in multidict.items()}
 
 
-def get_response(url, text):
-
-    log_files = (file for file in os.listdir(CONFIG_DIR) if os.path.isfile(os.path.join(CONFIG_DIR, file)))
-
-    for file in log_files:
-        log.info("Reading {}".format(file))
-        with open(os.path.join(CONFIG_DIR, file), "r") as f:
-            data = yaml.safe_load(f)
-            try:
-                if data["request"]["url"] == url and data["request"]["content"]["body"] == text:
-                    data.update({"file_name": file})
-                    return data
-            except KeyError:
-                raise KeyError("Not valid yaml file")
+# def get_response(url, text):
+#
+#     log_files = (file for file in os.listdir(CONFIG_DIR) if os.path.isfile(os.path.join(CONFIG_DIR, file)))
+#
+#     for file in log_files:
+#         log.info("Reading {}".format(file))
+#         with open(os.path.join(CONFIG_DIR, file), "r") as f:
+#             data = yaml.safe_load(f)
+#             try:
+#                 if data["request"]["url"] == url and data["request"]["content"]["body"] == text:
+#                     data.update({"file_name": file})
+#                     return data
+#             except KeyError:
+#                 raise KeyError("Not valid yaml file")
 
 
 def directory_is_not_empty():
