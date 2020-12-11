@@ -1,6 +1,6 @@
 import os, re, yaml, shutil, pathlib
 
-from settings import CONFIG_DIR, log
+from .settings import CONFIG_DIR, log
 
 
 def get_last_file(files):

@@ -1,11 +1,11 @@
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop, TestServer, Application
 
-from app import init_func
-from settings import UPSTREAM
-from utils import clean_config_directory
+from mocksha.app import init_func
+from mocksha.settings import UPSTREAM
+from mocksha.utils import clean_config_directory
 
 
-class MockshaAppTestCase(AioHTTPTestCase):
+class MockshaAppUseLocalhostMockTestCase(AioHTTPTestCase):
 
     @classmethod
     def tearDownClass(cls):

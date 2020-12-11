@@ -2,9 +2,9 @@ from urllib.parse import urljoin
 
 from aiohttp import web, ClientSession
 
-from utils import logger, multidict_to_dict, get_response, directory_is_not_empty, reset_some_response_headers, \
+from .utils import logger, multidict_to_dict, get_response, directory_is_not_empty, reset_some_response_headers, \
     clean_config_directory
-from settings import UPSTREAM, log
+from .settings import UPSTREAM, log
 
 
 routes = web.RouteTableDef()
