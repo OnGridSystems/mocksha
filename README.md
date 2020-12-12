@@ -6,10 +6,10 @@ Mocksha has two modes of oparation: record and replay.
 
 ## Record mode - intercepts ans saves HTTP requests to YAML files
 
-install aiohttp
+install required packages
 
 ```
-pip install aiohttp
+pip install -r requirements.txt
 ```
 
 Provide the external server URI via env 
@@ -18,7 +18,7 @@ Provide the external server URI via env
 
 Start the server on the given port 
 
-`python -m aiohttp.web -H localhost -P 8080 mocksha`
+`python -m aiohttp.web -H localhost -P 8080 app:init_func`
 
 Interact with it
 
@@ -56,4 +56,10 @@ Since it’s intended to emulate external resource in CI auto-tests, we made its
 
 * Supports only HTTP
 * Tested only on plaintext data
+
+## Test
+
+To run tests
+
+`./run_tests.sh`
 
